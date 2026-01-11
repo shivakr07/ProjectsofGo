@@ -12,6 +12,9 @@ import (
 
 	"github.com/shivakr07/students-api/internal/config"
 	"github.com/shivakr07/students-api/internal/handlers/student"
+
+	// "github.com/shivakr07/students-api/internal/storage"
+	"github.com/shivakr07/students-api/internal/storage/sqlite"
 )
 
 func main() {
@@ -24,6 +27,16 @@ func main() {
 	//load config
 	cfg := config.MustLoad()
 
+	//db setup [call the New method defined in the sqlite]
+	storage, err := sqlite.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	slog.Info("storage initialized", slog.String("env", cfg.Env), slog.String("version", "1.0.0")) //here we are hardcoding this value but later you can add actual values
+	// now db is ready and now if we run the app then table should be created
+	// we can use gui apps for db's like tableplus
+
 	//router setup
 	//we will use net/http inbuilt package
 	router := http.NewServeMux()
@@ -35,7 +48,10 @@ func main() {
 
 	//since now we will use reference of that function here which is defined in the student.go using New
 	//we keep resources as plural in the REST
-	router.HandleFunc("POST /api/students", student.New())
+	// router.HandleFunc("POST /api/students", student.New())
+
+	//we want to use the database in the new function now so we need to receive this as a dependency [in the func definition]
+	router.HandleFunc("POST /api/students", student.New(storage))
 
 	//setup server
 	server := http.Server{

@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/shivakr07/students-api/internal/storage"
 	"github.com/shivakr07/students-api/internal/types"
 	"github.com/shivakr07/students-api/internal/utils/response"
 )
@@ -19,7 +20,7 @@ import (
 // func(w http.ResponseWriter, r *http.Request) { .. this func
 // and at that place we just need to give reference of this func
 
-func New() http.HandlerFunc {
+func New(storage storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("creating a student")
 
@@ -58,9 +59,30 @@ func New() http.HandlerFunc {
 			return
 		}
 
+		//create student
+		//since we are receiving it as dependency then we can use that in this way
+		lastId, err := storage.CreateStudent(
+			student.Name,
+			student.Email,
+			student.Age,
+		)
+
+		slog.Info("user created successfully", slog.String("userId", fmt.Sprint(lastId)))
+
+		if err != nil {
+			response.WriteJson(w, http.StatusInternalServerError, err)
+			return
+		}
+
 		//we need to serialize the json data we will get from request, so that we can use that
 
-		response.WriteJson(w, http.StatusCreated, map[string]string{"sucess": "OK"})
+		// response.WriteJson(w, http.StatusCreated, map[string]string{"sucess": "OK"})
+
+		//since now we are assuming everything is ok so return proper values
+		response.WriteJson(w, http.StatusCreated, map[string]int64{"id": lastId})
+
+		//NOW WE are ready to test as our handler is ready
+		// we got {id:1} in response when we sent the data
 
 		// so till now our api is working we are getting
 		// EOF error [status code 400 bad request]
