@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/shivakr07/students-api/internal/config"
+	"github.com/shivakr07/students-api/internal/handlers/student"
 )
 
 func main() {
@@ -27,10 +28,14 @@ func main() {
 	//we will use net/http inbuilt package
 	router := http.NewServeMux()
 	//now we can make url's
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome to students api"))
-		//in write method we can add bytes
-	})
+	// router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Write([]byte("Welcome to students api"))
+	// 	//in write method we can add bytes
+	// })
+
+	//since now we will use reference of that function here which is defined in the student.go using New
+	//we keep resources as plural in the REST
+	router.HandleFunc("POST /api/students", student.New())
 
 	//setup server
 	server := http.Server{
