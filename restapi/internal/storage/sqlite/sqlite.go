@@ -2,10 +2,12 @@ package sqlite
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 	//since we are not using directly like obj.something so we are using indirectly so we used _
 	"github.com/shivakr07/students-api/internal/config"
+	"github.com/shivakr07/students-api/internal/types"
 )
 
 //here we implement the interfaces created in the storage.go
@@ -83,4 +85,43 @@ func (s *Sqlite) CreateStudent(name string, email string, age int) (int64, error
 	//since here we don't have error
 
 	//first we prepare the statement/query and then we bind the data
+}
+
+//how pluging helps
+//if in future you want to use postgres
+//except the query part like sql or postgre-sql
+// you just need to import postgres and create struct of that
+// and just implement that interface type Storage interface {CreateStudent ()}
+// means you just need to implement that CreateStudent method over postgres struct
+// and in the main instead of sqlite.New you will do postgres.New
+// that's it ...
+// or you can pass fake db also for testing
+//POWER OF DEPENDENCY INJECTION
+
+func (s *Sqlite) GetStudentById(id int64) (types.Student, error) {
+	stmt, err := s.Db.Prepare("SELECT id, name, email, age FROM students WHERE id = ? LIMIT 1")
+	if err != nil {
+		return types.Student{}, err
+		//empty struct
+	}
+	defer stmt.Close()
+
+	//whatever data we are getting from the db that needs to be deserialized so
+	var student types.Student
+
+	err = stmt.QueryRow(id).Scan(&student.Id, &student.Name, &student.Email, &student.Age)
+	if err != nil {
+		//sometimes we get error like user not found
+		if err == sql.ErrNoRows {
+			return types.Student{}, fmt.Errorf("n o student found with id %s", fmt.Sprint(id))
+		}
+		//else this will be error mostly
+		return types.Student{}, fmt.Errorf("qeury error : %w", err)
+	}
+
+	//if everything is okay
+	return student, nil
+
+	//this method adds the db data into the struct var student
+	//ordering is very important
 }
