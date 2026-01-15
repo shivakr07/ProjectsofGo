@@ -12,8 +12,6 @@ import (
 
 	"github.com/shivakr07/students-api/internal/config"
 	"github.com/shivakr07/students-api/internal/handlers/student"
-
-	// "github.com/shivakr07/students-api/internal/storage"
 	"github.com/shivakr07/students-api/internal/storage/sqlite"
 )
 
@@ -52,9 +50,10 @@ func main() {
 
 	//we want to use the database in the new function now so we need to receive this as a dependency [in the func definition]
 	router.HandleFunc("POST /api/students", student.New(storage))
-
 	//time to create one more route
 	router.HandleFunc("GET /api/students/{id}", student.GetById(storage))
+	router.HandleFunc("GET /api/students", student.GetList(storage))
+
 	//setup server
 	server := http.Server{
 		Addr:    cfg.Addr,
