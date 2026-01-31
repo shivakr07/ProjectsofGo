@@ -1,18 +1,43 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"log"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shivakr07/todos/internal/config"
+	"github.com/shivakr07/todos/internal/database"
+)
 
 func main() {
+
+	var cfg *config.Config
+	var err error
+
+	cfg, err = config.Load()
+	if err != nil {
+		log.Fatal("Failed to load the database config", err)
+	}
+
+	var pool *pgxpool.Pool
+	pool, err = database.Connect(cfg.DatabaseURL)
+
+	if err != nil {
+		log.Fatal("Failed to connect with database", err)
+	}
+
+	defer pool.Close()
 
 	var router *gin.Engine = gin.Default()
 	router.SetTrustedProxies(nil)
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "Todo API is running",
-			"status":  "success",
+			"message":  "Todo API is running",
+			"status":   "success",
+			"database": "connected",
 		})
 	})
 
-	router.Run(":3000")
+	router.Run(":" + cfg.Port)
 
 }
