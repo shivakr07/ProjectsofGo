@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shivakr07/todos/internal/config"
 	"github.com/shivakr07/todos/internal/database"
+	"github.com/shivakr07/todos/internal/handlers"
 )
 
 func main() {
@@ -37,6 +38,8 @@ func main() {
 			"database": "connected",
 		})
 	})
+
+	router.POST("/todos", handlers.CreateTodoHandler(pool))
 
 	router.Run(":" + cfg.Port)
 
