@@ -22,7 +22,7 @@ type UpdateTodoInput struct {
 	Completed *bool   `json:"completed"`
 }
 
-// handler
+// handlers
 func CreateTodoHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input CreateTodoInput
@@ -132,5 +132,30 @@ func UpdateTodoHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, todo)
+	}
+}
+
+func DeleteTodoHandler(pool *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid Todo id"})
+		}
+
+		err = repository.DeleteTodo(pool, id)
+		if err != nil {
+			//we match with returned error from repo
+			if err.Error() == "todo with id "+idStr+" was not found" {
+				c.JSON(http.StatusNotFound, gin.H{"error": "Todo was not found"})
+				return
+			}
+
+			//what if todo was found but some error occured
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Todo was deleted successfully!"})
 	}
 }
