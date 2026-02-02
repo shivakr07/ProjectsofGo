@@ -43,6 +43,8 @@ func main() {
 
 	router.GET("/todos", handlers.GetAllTodosHandler(pool))
 
+	router.GET("/todos/:id", handlers.GetTodoByIdHandler(pool))
+
 	router.Run(":" + cfg.Port)
 
 }
