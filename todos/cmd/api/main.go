@@ -32,6 +32,7 @@ func main() {
 
 	var router *gin.Engine = gin.Default()
 	router.SetTrustedProxies(nil)
+	//public routes home, register and login
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message":  "Todo API is running",
@@ -40,19 +41,20 @@ func main() {
 		})
 	})
 
-	router.POST("/todos", handlers.CreateTodoHandler(pool))
-
-	router.GET("/todos", handlers.GetAllTodosHandler(pool))
-
-	router.GET("/todos/:id", handlers.GetTodoByIdHandler(pool))
-
-	router.PUT("/todos/:id", handlers.UpdateTodoHandler(pool))
-
-	router.DELETE("todos/:id", handlers.DeleteTodoHandler(pool))
-
 	router.POST("/auth/register", handlers.CreateUserHandler(pool))
-
 	router.POST("/auth/login", handlers.LoginHandler(pool, cfg))
+
+	// these are protected routes [routegroup]
+	protected := router.Group("/todos")
+	protected.Use(middleware.AuthMiddleware(cfg))
+	{
+		protected.POST("", handlers.CreateTodoHandler(pool))
+		protected.GET("", handlers.GetAllTodosHandler(pool))
+		protected.GET("/:id", handlers.GetTodoByIdHandler(pool))
+		protected.PUT("/:id", handlers.UpdateTodoHandler(pool))
+		protected.DELETE("/:id", handlers.DeleteTodoHandler(pool))
+	}
+	//curley braces are just for styling
 
 	//middleware test route
 	router.GET("/protected-test", middleware.AuthMiddleware(cfg), handlers.TestProtectionHandler())
