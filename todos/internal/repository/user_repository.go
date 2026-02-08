@@ -42,7 +42,7 @@ func GetUserByEmail(pool *pgxpool.Pool, email string) (*models.User, error) {
 	defer cancel()
 
 	var query string = `
-		SELECT id, email, created_at, updated_at
+		SELECT id, email, password, created_at, updated_at
 		FROM users 
 		WHERE email = $1
 	`
@@ -51,9 +51,11 @@ func GetUserByEmail(pool *pgxpool.Pool, email string) (*models.User, error) {
 	err := pool.QueryRow(c, query, email).Scan(
 		&user.ID,
 		&user.Email,
+		&user.Password,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
+	//here we need to return the password as our login handler need the pw to match
 
 	if err != nil {
 		return nil, err

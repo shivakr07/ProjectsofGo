@@ -8,6 +8,7 @@ import (
 	"github.com/shivakr07/todos/internal/config"
 	"github.com/shivakr07/todos/internal/database"
 	"github.com/shivakr07/todos/internal/handlers"
+	"github.com/shivakr07/todos/internal/middleware"
 )
 
 func main() {
@@ -50,6 +51,12 @@ func main() {
 	router.DELETE("todos/:id", handlers.DeleteTodoHandler(pool))
 
 	router.POST("/auth/register", handlers.CreateUserHandler(pool))
+
+	router.POST("/auth/login", handlers.LoginHandler(pool, cfg))
+
+	//middleware test route
+	router.GET("/protected-test", middleware.AuthMiddleware(cfg), handlers.TestProtectionHandler())
+	//we are passing here cfg because it have our secret key
 
 	router.Run(":" + cfg.Port)
 
